@@ -238,9 +238,9 @@ function allowed_languages_pre_render_operations(array $element) {
       $url_language_service->setUrlLanguage($language);
     }
 
-    // If the user is not allowed to access the URL then remove it from the
-    // array of operation links.
-    if (!$link['url']->access()) {
+    // If the entity is translatable and the user is not allowed to access the URL
+    // then remove it from the array of operation links.
+    if ($entity !== NULL && $entity->isTranslatable() && !$link['url']->access()) {
       unset($element['#links'][$link_key]);
     }
   }
