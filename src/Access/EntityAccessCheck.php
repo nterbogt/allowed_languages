@@ -78,10 +78,10 @@ class EntityAccessCheck extends AccessCheckBase {
 
     $parameters = $route_match->getParameters();
 
-    // No opinion if the entity type parameter is missing, let other modules
+    // If the entity type parameter is missing, let other modules
     // take care of the access check then.
     if (!$parameters->has($entity_type)) {
-      return AccessResult::neutral();
+      return AccessResult::allowed();
     }
 
     $entity = $parameters->get($entity_type);
@@ -89,7 +89,7 @@ class EntityAccessCheck extends AccessCheckBase {
     // Only check the access for entities that are content entities since this
     // module only support translatable content entities.
     if (!$entity instanceof ContentEntityInterface) {
-      return AccessResult::neutral();
+      return AccessResult::allowed();
     }
 
     // Exclude non-translatable content types from
