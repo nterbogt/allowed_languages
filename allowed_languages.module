@@ -11,9 +11,10 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Url;
 use Drupal\user\UserInterface;
-use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
@@ -26,17 +27,6 @@ function allowed_languages_help($route_name, RouteMatchInterface $route_match) {
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Lets you limit the languages a user may use when managing content.') . '</p>';
       return $output;
-  }
-}
-
-/**
- * Implements hook_element_info_alter().
- */
-function allowed_languages_element_info_alter(array &$info) {
-  // Add a process function to the operations element so that we can perform
-  // access checks for each operation link before rendering.
-  if (isset($info['operations'])) {
-    $info['operations']['#pre_render'][] = 'allowed_languages_pre_render_operations';
   }
 }
 
@@ -194,61 +184,30 @@ function allowed_languages_user_form_submit(array &$form, FormStateInterface $fo
 }
 
 /**
- * Pre render function to alter the operations element.
- *
- * This function will call the access check for each operation link and remove
- * it if the user is not allowed access.
- *
- * @param array $element
- *   The operations render array.
- *
- * @return array
- *   The modified operations element.
- *
- * @todo Remove usage of the url language service when a better solution is
- * found.
+ * Implements hook_entity_operation_alter().
  */
-function allowed_languages_pre_render_operations(array $element) {
-  /** @var \Drupal\allowed_languages\UrlLanguageService $url_language_service */
-  $url_language_service = \Drupal::service('allowed_languages.url_language_service');
+function allowed_languages_entity_operation_alter(array &$operations, \Drupal\Core\Entity\EntityInterface $entity) {
+  $account = \Drupal::currentUser();
 
-  foreach ($element['#links'] as $link_key => $link) {
-    // Make sure the url key is an URL object before attempting to call the
-    // access method.
-    if (!$link['url'] instanceof Url) {
-      continue;
-    }
+  // Keep all operations if it is not the instance of ContentEntityInterface,
+  // the entity is not translatable or if the user has permission to translate all languages.
+  if ($entity instanceof ContentEntityInterface &&
+    $entity->isTranslatable() &&
+    !$account->hasPermission('translate all languages')) {
+    $user = User::load($account->id());
+    $lang = $entity->language();
+    $allowed_languages = allowed_languages_get_allowed_languages_for_user($user);
 
-    // Re-set the URL language service before using it to not get any
-    // side-effects from data that might have been stored previously.
-    $url_language_service->resetUrlLanguage();
-
-    // For some reason the the content translation module adds the language
-    // directly to the link and not as an option to the URL object like it
-    // preferably should to.
-    //
-    // Because of this we check the link first for a language and then fall
-    // back to using the langue option.
-    $language = (isset($link['language']) && $link['language'] instanceof LanguageInterface)
-      ? $link['language']
-      : $link['url']->getOption('language');
-
-    // Only attempt to set the language if one was found on the link.
-    if ($language) {
-      $url_language_service->setUrlLanguage($language);
-    }
-
-    // If the entity is translatable and the user is not allowed to access the URL
-    // then remove it from the array of operation links.
-    if ($entity !== NULL && $entity->isTranslatable() && !$link['url']->access()) {
-      unset($element['#links'][$link_key]);
+    // If the language is not allowed for the current user.
+    if (!in_array($lang->getId(), $allowed_languages)) {
+      foreach ($operations as $id => $operation) {
+        // Unset operations
+        if (isset($operation['url']) && !$operation['url']->access($account)) {
+          unset($operations[$id]);
+        }
+      }
     }
   }
-
-  // We're done using the url language service so re-set it its default.
-  $url_language_service->resetUrlLanguage();
-
-  return $element;
 }
 
 /**

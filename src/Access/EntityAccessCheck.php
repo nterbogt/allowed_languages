@@ -61,9 +61,8 @@ class EntityAccessCheck extends AccessCheckBase {
    *   Result from the access check.
    */
   public function access(Route $route, RouteMatchInterface $route_match, AccountInterface $account) {
-    // Always allow users with the administrator role access since they
-    // automatically get access to everything.
-    if ($this->accountHasAdministratorRole($account)) {
+    // Bypass the access check if the user has permission to translate all languages.
+    if ($account->hasPermission('translate all languages')) {
       return AccessResult::allowed();
     }
 
@@ -88,13 +87,9 @@ class EntityAccessCheck extends AccessCheckBase {
 
     // Only check the access for entities that are content entities since this
     // module only support translatable content entities.
-    if (!$entity instanceof ContentEntityInterface) {
-      return AccessResult::allowed();
-    }
-
-    // Exclude non-translatable content types from
+    // Also exclude non-translatable content types from
     // allowed languages' access control.
-    if (!$entity->isTranslatable()) {
+    if (!$entity instanceof ContentEntityInterface || !$entity->isTranslatable()) {
       return AccessResult::allowed();
     }
 

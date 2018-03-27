@@ -31,19 +31,6 @@ abstract class AccessCheckBase implements AccessInterface {
   }
 
   /**
-   * Check if the account has the administrator role.
-   *
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   The account to check against.
-   *
-   * @return bool
-   *   If the account has the administrator role or not.
-   */
-  protected function accountHasAdministratorRole(AccountInterface $account) {
-    return in_array('administrator', $account->getRoles());
-  }
-
-  /**
    * Checks if the user is allowed to translate the specified language.
    *
    * @param \Drupal\user\UserInterface $user
