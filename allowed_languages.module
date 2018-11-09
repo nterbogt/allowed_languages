@@ -61,6 +61,11 @@ function allowed_languages_field_widget_language_select_form_alter(&$element, Fo
     return;
   }
 
+  // We can translate all languages.
+  if (\Drupal::currentUser()->hasPermission('translate all languages')) {
+    return;
+  }
+
   $entity_type = $form_object
     ->getEntity()
     ->getEntityType();
