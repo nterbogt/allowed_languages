@@ -5,6 +5,7 @@
  * Contains allowed_languages.module.
  */
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\ContentEntityFormInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -14,7 +15,6 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
 use Drupal\user\Entity\User;
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Url;
 
 /**
  * Implements hook_help().
@@ -191,7 +191,7 @@ function allowed_languages_user_form_submit(array &$form, FormStateInterface $fo
 /**
  * Implements hook_entity_operation_alter().
  */
-function allowed_languages_entity_operation_alter(array &$operations, \Drupal\Core\Entity\EntityInterface $entity) {
+function allowed_languages_entity_operation_alter(array &$operations, EntityInterface $entity) {
   $account = \Drupal::currentUser();
 
   // Keep all operations if it is not the instance of ContentEntityInterface,
@@ -206,7 +206,7 @@ function allowed_languages_entity_operation_alter(array &$operations, \Drupal\Co
     // If the language is not allowed for the current user.
     if (!in_array($lang->getId(), $allowed_languages)) {
       foreach ($operations as $id => $operation) {
-        // Unset operations
+        // Unset operations.
         if (isset($operation['url']) && !$operation['url']->access($account)) {
           unset($operations[$id]);
         }

@@ -4,7 +4,6 @@ namespace Drupal\allowed_languages\Controller;
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\content_translation\Controller\ContentTranslationController;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\user\Entity\User;
 
 /**
@@ -19,6 +18,7 @@ class AllowedLanguagesController extends ContentTranslationController {
    *   The route match.
    * @param string $entity_type_id
    *   (optional) The entity type ID.
+   *
    * @return array
    *   Array of page elements to render.
    */

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\allowed_languages\Kernel;
 
-
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\user\Entity\User;
