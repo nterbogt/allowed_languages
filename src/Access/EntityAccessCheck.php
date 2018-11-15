@@ -61,11 +61,6 @@ class EntityAccessCheck extends AccessCheckBase {
    *   Result from the access check.
    */
   public function access(Route $route, RouteMatchInterface $route_match, AccountInterface $account) {
-    // Bypass the access check if the user has permission to translate all languages.
-    if ($account->hasPermission('translate all languages')) {
-      return AccessResult::allowed();
-    }
-
     // Split the entity type and the operation.
     $requirement = $route->getRequirement('_entity_access');
     list($entity_type, $operation) = explode('.', $requirement);

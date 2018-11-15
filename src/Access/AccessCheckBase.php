@@ -42,6 +42,11 @@ abstract class AccessCheckBase implements AccessInterface {
    *   If the user is allowed to or not.
    */
   protected function userIsAllowedToTranslateLanguage(UserInterface $user, LanguageInterface $language) {
+    // Bypass the access check if the user has permission to translate all languages.
+    if ($user->hasPermission('translate all languages')) {
+      return TRUE;
+    }
+
     $allowed_languages = $this->getUsersAllowedLanguages($user);
     return in_array($language->getId(), $allowed_languages);
   }
