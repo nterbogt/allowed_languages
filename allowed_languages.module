@@ -188,6 +188,16 @@ function allowed_languages_user_form_submit(array &$form, FormStateInterface $fo
   }
 }
 
+function allowed_languages_entity_type_alter(array &$entity_types) {
+  // Provide defaults for translation info.
+  /** @var $entity_types \Drupal\Core\Entity\EntityTypeInterface[] */
+  foreach ($entity_types as $entity_type) {
+    if ($entity_type->isTranslatable()) {
+      $entity_type->setHandlerClass('translation', 'Drupal\allowed_languages\AllowedLanguagesContentTranslationHandler');
+    }
+  }
+}
+
 /**
  * Implements hook_entity_operation_alter().
  */

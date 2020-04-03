@@ -15,11 +15,11 @@ class AllowedLanguagesRouteSubscriber extends ContentTranslationRouteSubscriber 
    * {@inheritdoc}
    */
   protected function alterRoutes(RouteCollection $collection) {
-    foreach ($this->contentTranslationManager->getSupportedEntityTypes() as $entity_type_id => $entity_type) {
-      if ($route = $collection->get("entity.$entity_type_id.content_translation_overview")) {
-        $route->setDefault('_controller', '\Drupal\allowed_languages\Controller\AllowedLanguagesController::overview');
-      }
-    }
+//    foreach ($this->contentTranslationManager->getSupportedEntityTypes() as $entity_type_id => $entity_type) {
+//      if ($route = $collection->get("entity.$entity_type_id.content_translation_overview")) {
+//        $route->setDefault('_controller', '\Drupal\allowed_languages\Controller\AllowedLanguagesController::overview');
+//      }
+//    }
   }
 
   /**
