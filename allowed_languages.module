@@ -10,7 +10,7 @@ use Drupal\Core\Entity\ContentEntityFormInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Language\LanguageInterface;
+use Drupal\allowed_languages\Form\AllowedLanguagesTrustedCallbacks;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
 use Drupal\user\Entity\User;
@@ -75,41 +75,10 @@ function allowed_languages_field_widget_language_select_form_alter(&$element, Fo
     return;
   }
 
-  $element['#pre_render'][] = 'allowed_languages_pre_render_language_select';
-}
-
-/**
- * Pre-render function for the language select widget.
- *
- * Removes any languages that the user is not allowed to create content for.
- *
- * @param array $element
- *   The element render array.
- *
- * @return array
- *   The modified render array.
- */
-function allowed_languages_pre_render_language_select(array $element) {
-  $user = allowed_languages_get_current_user();
-  $allowed_languages = allowed_languages_get_allowed_languages_for_user($user);
-
-  // Remove any languages that the user is not allowed to add content for.
-  foreach ($element['value']['#options'] as $language_code => $language_option) {
-    // If the language is allowed then continue.
-    if (in_array($language_code, $allowed_languages)) {
-      continue;
-    }
-
-    // Always allow the not specified and not applicable language options.
-    if ($language_code === LanguageInterface::LANGCODE_NOT_SPECIFIED
-      || $language_code === LanguageInterface::LANGCODE_NOT_APPLICABLE) {
-      continue;
-    }
-
-    unset($element['value']['#options'][$language_code]);
-  }
-
-  return $element;
+  $element['#pre_render'][] = [
+    AllowedLanguagesTrustedCallbacks::class,
+    'languageSelectWidgetPreRender',
+  ];
 }
 
 /**
