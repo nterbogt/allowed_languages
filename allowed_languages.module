@@ -11,6 +11,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\allowed_languages\Form\AllowedLanguagesTrustedCallbacks;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -95,7 +96,7 @@ function allowed_languages_form_user_form_alter(array &$form, FormStateInterface
   $user = $form_state->getFormObject()->getEntity();
 
   $languages = allowed_languages_get_language_options();
-  $users_allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->allowedLanguages($user);
+  $users_allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->assignedLanguages($user);
 
   // Merge the array of languages with the all languages option.
   $language_options = [
@@ -183,53 +184,18 @@ function allowed_languages_entity_operation_alter(array &$operations, EntityInte
 }
 
 /**
- * Get the current user.
- *
- * This will return a user entity and not the account proxy.
- *
- * @return \Drupal\Core\Entity\EntityInterface|\Drupal\user\UserInterface|null
- *   The current user entity.
- */
-function allowed_languages_get_current_user() {
-  \Drupal::service('allowed_languages.allowed_languages_manager')->currentUserEntity();
-}
-
-/**
  * Get an array of languages to use with the allowed language checkboxes.
  *
  * @return array
  *   An array of languages keyed by id => name.
  */
 function allowed_languages_get_language_options() {
-  $language_options = [];
+  $element = [
+    '#languages' => LanguageInterface::STATE_CONFIGURABLE,
+  ];
+  $language_element = language_process_language_select($element);
 
-  /** @var \Drupal\language\Entity\ConfigurableLanguage[] $languages */
-  $languages = \Drupal::entityTypeManager()
-    ->getStorage('configurable_language')
-    ->loadMultiple();
-
-  // Get only languages that are not locked.
-  foreach ($languages as $language) {
-    if ($language->isLocked()) {
-      continue;
-    }
-
-    $language_options[$language->id()] = $language->getName();
-  }
-
+  $language_options = $language_element['#options'];
   asort($language_options);
   return $language_options;
-}
-
-/**
- * Get the allowed languages for the specified user.
- *
- * @param \Drupal\user\UserInterface $user
- *   The user to get allowed languages for.
- *
- * @return array
- *   An array of allowed language ids.
- */
-function allowed_languages_get_allowed_languages_for_user(UserInterface $user) {
-  return \Drupal::service('allowed_languages.allowed_languages_manager')->allowedLanguages($user);
 }

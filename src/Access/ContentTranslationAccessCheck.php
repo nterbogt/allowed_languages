@@ -2,6 +2,7 @@
 
 namespace Drupal\allowed_languages\Access;
 
+use Drupal\allowed_languages\AllowedLanguagesManager;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
@@ -16,13 +17,6 @@ use Symfony\Component\Routing\Route;
 class ContentTranslationAccessCheck extends AccessCheckBase {
 
   /**
-   * Drupal entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  private $entityTypeManager;
-
-  /**
    * Drupal language manager.
    *
    * @var \Drupal\Core\Language\LanguageManagerInterface
@@ -32,18 +26,18 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
   /**
    * AccessCheck constructor.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Drupal entity type manager.
    * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   Drupal language manager.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
+    EntityTypeManagerInterface $entity_type_manager,
+    AllowedLanguagesManager $allowed_languages_manager,
     LanguageManagerInterface $languageManager
   ) {
-    parent::__construct($entityTypeManager);
+    parent::__construct($entity_type_manager, $allowed_languages_manager);
 
-    $this->entityTypeManager = $entityTypeManager;
     $this->languageManager = $languageManager;
   }
 
@@ -83,9 +77,9 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
     }
 
     $user = $this->loadUserEntityFromAccountProxy($account);
-    $target_language = $this->getTargetLanguage($target);
+    $language = $this->getTargetLanguage($target);
 
-    if ($this->userIsAllowedToTranslateLanguage($user, $target_language)) {
+    if ($this->allowedLanguagesManager->hasPermissionForLanguage($language, $user)) {
       return AccessResult::allowed();
     }
 

@@ -21,7 +21,7 @@ class AllowedLanguagesTrustedCallbacks implements TrustedCallbackInterface {
    * Removes any languages that the user is not allowed to create content for.
    */
   public static function languageSelectWidgetPreRender($build) {
-    $allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->allowedLanguages();
+    $allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->assignedLanguages();
 
     // Remove any languages that the user is not allowed to add content for.
     foreach ($build['value']['#options'] as $language_code => $language_option) {

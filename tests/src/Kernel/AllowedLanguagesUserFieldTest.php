@@ -20,7 +20,7 @@ class AllowedLanguagesUserFieldTest extends AllowedLanguagesKernelTestBase {
    * Test the allowed languages function to get a users languages.
    */
   public function testAllowedLanguageGetAllowedLanguagesForUser() {
-    $allowed_languages = allowed_languages_get_allowed_languages_for_user($this->user);
+    $allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->assignedLanguages($this->user);
 
     $this->assertEquals($allowed_languages, ['sv', 'en']);
   }

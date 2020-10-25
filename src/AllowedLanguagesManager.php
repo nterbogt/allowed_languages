@@ -33,7 +33,7 @@ class AllowedLanguagesManager {
    * @return array
    *   An array of allowed language ids.
    */
-  public function allowedLanguages(UserInterface $user = null) {
+  public function assignedLanguages(UserInterface $user = null) {
     if ($user === NULL) {
       $user = $this->currentUserEntity();
     }
@@ -74,7 +74,7 @@ class AllowedLanguagesManager {
       return TRUE;
     }
 
-    $allowed_languages = $this->allowedLanguages($user);
+    $allowed_languages = $this->assignedLanguages($user);
     return in_array($language->getId(), $allowed_languages);
   }
 

@@ -2,6 +2,7 @@
 
 namespace Drupal\allowed_languages\Access;
 
+use Drupal\allowed_languages\AllowedLanguagesManager;
 use Drupal\allowed_languages\UrlLanguageService;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -16,13 +17,6 @@ use Symfony\Component\Routing\Route;
 class EntityAccessCheck extends AccessCheckBase {
 
   /**
-   * Drupal entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  private $entityTypeManager;
-
-  /**
    * Allowed access url language service.
    *
    * @var \Drupal\allowed_languages\UrlLanguageService
@@ -32,18 +26,18 @@ class EntityAccessCheck extends AccessCheckBase {
   /**
    * AccessCheck constructor.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Drupal entity type manager.
    * @param \Drupal\allowed_languages\UrlLanguageService $urlLanguageService
    *   Allowed access url language service.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
+    EntityTypeManagerInterface $entity_type_manager,
+    AllowedLanguagesManager $allowed_languages_manager,
     UrlLanguageService $urlLanguageService
   ) {
-    parent::__construct($entityTypeManager);
+    parent::__construct($entity_type_manager, $allowed_languages_manager);
 
-    $this->entityTypeManager = $entityTypeManager;
     $this->urlLanguageService = $urlLanguageService;
   }
 
@@ -91,10 +85,9 @@ class EntityAccessCheck extends AccessCheckBase {
     // @todo Remove usage of the url language service when a better solution
     // is found.
     $language = $this->urlLanguageService->getUrlLanguage() ?: $entity->language();
-
     $user = $this->loadUserEntityFromAccountProxy($account);
 
-    if ($this->userIsAllowedToTranslateLanguage($user, $language)) {
+    if ($this->allowedLanguagesManager->hasPermissionForLanguage($language, $user)) {
       return AccessResult::allowed();
     }
 

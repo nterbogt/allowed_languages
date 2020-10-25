@@ -29,8 +29,7 @@ class AllowedLanguages extends FilterPluginBase {
    * {@inheritdoc}
    */
   public function query() {
-    $user = allowed_languages_get_current_user();
-    $allowed_languages = allowed_languages_get_allowed_languages_for_user($user);
+    $allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->assignedLanguages();
 
     if ($allowed_languages) {
       $this->ensureMyTable();

@@ -30,8 +30,7 @@ class AllowedLanguagesController extends ContentTranslationController {
       !empty($build['content_translation_overview']['#rows'])) {
       $rows = &$build['content_translation_overview']['#rows'];
       $languages = $this->languageManager()->getLanguages();
-      $user_entity = User::load($user->id());
-      $allowed_languages = allowed_languages_get_allowed_languages_for_user($user_entity);
+      $allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->assignedLanguages();
       // Index of a row with the language in the parent output.
       $i = 0;
       // Parent overview() method does the same loop through available languages.
