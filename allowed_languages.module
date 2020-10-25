@@ -13,7 +13,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\allowed_languages\Form\AllowedLanguagesTrustedCallbacks;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\user\UserInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 
 /**

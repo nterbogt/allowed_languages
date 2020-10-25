@@ -19,9 +19,13 @@ class AllowedLanguagesManager {
   }
 
   public function currentUserEntity() {
+    return $this->userEntityFromProxy($this->currentUser);
+  }
+
+  public function userEntityFromProxy(AccountProxyInterface $account) {
     return $this->entityTypeManager
       ->getStorage('user')
-      ->load($this->currentUser->id());
+      ->load($account->id());
   }
 
   /**
