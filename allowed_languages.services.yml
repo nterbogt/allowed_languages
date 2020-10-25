@@ -1,4 +1,8 @@
 services:
+  allowed_languages.allowed_languages_manager:
+    class: Drupal\allowed_languages\AllowedLanguagesManager
+    arguments: ['@current_user', '@entity_type.manager']
+
   allowed_languages.url_language_service:
     class: Drupal\allowed_languages\UrlLanguageService
 

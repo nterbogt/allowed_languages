@@ -13,7 +13,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\allowed_languages\Form\AllowedLanguagesTrustedCallbacks;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\user\UserInterface;
-use Drupal\user\Entity\User;
 use Drupal\Core\Entity\ContentEntityInterface;
 
 /**
@@ -34,24 +33,26 @@ function allowed_languages_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_entity_base_field_info().
  */
 function allowed_languages_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() !== 'user') {
+    return;
+  }
+
   $fields = [];
 
-  if ($entity_type->id() === 'user') {
-    // Add the allowed languages entity reference field to the user entity.
-    $fields['allowed_languages'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Allowed languages'))
-      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
-      ->setDescription(t('The languages the user is allowed to manage.'))
-      ->setSetting('target_type', 'configurable_language');
-  }
+  // Add the allowed languages entity reference field to the user entity.
+  $fields['allowed_languages'] = BaseFieldDefinition::create('entity_reference')
+    ->setLabel(t('Allowed languages'))
+    ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
+    ->setDescription(t('The languages the user is allowed to manage.'))
+    ->setSetting('target_type', 'configurable_language');
 
   return $fields;
 }
 
 /**
- * Apply a pre-render function to the language select field widget.
- *
  * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ *
+ * Apply a pre-render function to the language select field widget.
  */
 function allowed_languages_field_widget_language_select_form_alter(&$element, FormStateInterface $form_state, $context) {
   $form_object = $form_state->getFormObject();
@@ -90,15 +91,11 @@ function allowed_languages_field_widget_language_select_form_alter(&$element, Fo
  *   The user form state.
  */
 function allowed_languages_form_user_form_alter(array &$form, FormStateInterface $form_state) {
-  // If user is not allowed to administer settings, return at once.
-  if (!\Drupal::currentUser()->hasPermission('administer allowed languages')) {
-    return;
-  }
   /** @var \Drupal\user\UserInterface $user */
   $user = $form_state->getFormObject()->getEntity();
 
   $languages = allowed_languages_get_language_options();
-  $users_allowed_languages = allowed_languages_get_allowed_languages_for_user($user);
+  $users_allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->allowedLanguages($user);
 
   // Merge the array of languages with the all languages option.
   $language_options = [
@@ -118,6 +115,7 @@ function allowed_languages_form_user_form_alter(array &$form, FormStateInterface
     '#type' => 'details',
     '#title' => t('Allowed languages'),
     '#open' => TRUE,
+    '#access' => \Drupal::currentUser()->hasPermission('administer allowed languages'),
   ];
 
   $form['allowed_languages']['languages'] = [
@@ -159,27 +157,27 @@ function allowed_languages_user_form_submit(array &$form, FormStateInterface $fo
 
 /**
  * Implements hook_entity_operation_alter().
+ *
+ * Used on views that show entity operations like "/admin/content".
  */
 function allowed_languages_entity_operation_alter(array &$operations, EntityInterface $entity) {
-  $account = \Drupal::currentUser();
 
-  // Keep all operations if it is not the instance of ContentEntityInterface,
-  // the entity is not translatable or if the user has permission to translate all languages.
-  if ($entity instanceof ContentEntityInterface &&
-    $entity->isTranslatable() &&
-    !$account->hasPermission('translate all languages')) {
-    $user = User::load($account->id());
-    $lang = $entity->language();
-    $allowed_languages = allowed_languages_get_allowed_languages_for_user($user);
+  // Keep all operations if it is not the instance of ContentEntityInterface
+  // or the entity is not translatable.
+  if (!$entity instanceof ContentEntityInterface || !$entity->isTranslatable()) {
+    return;
+  }
 
-    // If the language is not allowed for the current user.
-    if (!in_array($lang->getId(), $allowed_languages)) {
-      foreach ($operations as $id => $operation) {
-        // Unset operations.
-        if (isset($operation['url']) && !$operation['url']->access($account)) {
-          unset($operations[$id]);
-        }
-      }
+  // If the language is allowed for the current user, leave alone.
+  $language = $entity->language();
+  if (\Drupal::service('allowed_languages.allowed_languages_manager')->hasPermissionForLanguage($language)) {
+    return;
+  }
+
+  // Unset operations the user doesn't have access to.
+  foreach ($operations as $id => $operation) {
+    if (isset($operation['url']) && !$operation['url']->access()) {
+      unset($operations[$id]);
     }
   }
 }
@@ -193,10 +191,7 @@ function allowed_languages_entity_operation_alter(array &$operations, EntityInte
  *   The current user entity.
  */
 function allowed_languages_get_current_user() {
-  $account = \Drupal::currentUser();
-  return \Drupal::entityTypeManager()
-    ->getStorage('user')
-    ->load($account->id());
+  \Drupal::service('allowed_languages.allowed_languages_manager')->currentUserEntity();
 }
 
 /**
@@ -236,17 +231,5 @@ function allowed_languages_get_language_options() {
  *   An array of allowed language ids.
  */
 function allowed_languages_get_allowed_languages_for_user(UserInterface $user) {
-  $language_values = [];
-
-  // Make sure the field exists before attempting to get languages.
-  if (!$user->hasField('allowed_languages')) {
-    return $language_values;
-  }
-
-  // Get the id of each referenced language.
-  foreach ($user->get('allowed_languages')->getValue() as $item) {
-    $language_values[] = $item['target_id'];
-  }
-
-  return $language_values;
+  return \Drupal::service('allowed_languages.allowed_languages_manager')->allowedLanguages($user);
 }
