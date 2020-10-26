@@ -34,7 +34,7 @@ function allowed_languages_help($route_name, RouteMatchInterface $route_match) {
  */
 function allowed_languages_entity_base_field_info(EntityTypeInterface $entity_type) {
   if ($entity_type->id() !== 'user') {
-    return;
+    return [];
   }
 
   $fields = [];
@@ -67,12 +67,9 @@ function allowed_languages_field_widget_language_select_form_alter(&$element, Fo
     return;
   }
 
-  $entity_type = $form_object
-    ->getEntity()
-    ->getEntityType();
-
   // Only alter translatable entity types.
-  if (!$entity_type->isTranslatable()) {
+  $entity = $form_object->getEntity();
+  if (!$entity->isTranslatable()) {
     return;
   }
 
@@ -174,12 +171,17 @@ function allowed_languages_entity_operation_alter(array &$operations, EntityInte
     return;
   }
 
+  // The access call doesn't know about language. Store it and then reset.
+  \Drupal::service('allowed_languages.url_language_service')->setUrlLanguage($language);
+
   // Unset operations the user doesn't have access to.
   foreach ($operations as $id => $operation) {
     if (isset($operation['url']) && !$operation['url']->access()) {
       unset($operations[$id]);
     }
   }
+
+  \Drupal::service('allowed_languages.url_language_service')->resetUrlLanguage();
 }
 
 /**
