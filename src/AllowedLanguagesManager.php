@@ -7,21 +7,50 @@ use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserInterface;
 
-class AllowedLanguagesManager {
+/**
+ * The allowed language manager controls access to content by language.
+ *
+ * @package Drupal\allowed_languages
+ */
+class AllowedLanguagesManager implements AllowedLanguagesManagerInterface {
 
+  /**
+   * The current user service.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
   protected $currentUser;
 
+  /**
+   * The entity type manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
   protected $entityTypeManager;
 
+  /**
+   * AllowedLanguagesManager constructor.
+   *
+   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   *   The current user service.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager service.
+   */
   public function __construct(AccountProxyInterface $current_user, EntityTypeManagerInterface $entity_type_manager) {
     $this->currentUser = $current_user;
     $this->entityTypeManager = $entity_type_manager;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function currentUserEntity() {
     return $this->userEntityFromProxy($this->currentUser);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function userEntityFromProxy(AccountProxyInterface $account) {
     return $this->entityTypeManager
       ->getStorage('user')
@@ -29,15 +58,9 @@ class AllowedLanguagesManager {
   }
 
   /**
-   * Get the allowed languages for the specified user.
-   *
-   * @param \Drupal\user\UserInterface $user
-   *   The user to get allowed languages for.
-   *
-   * @return array
-   *   An array of allowed language ids.
+   * {@inheritdoc}
    */
-  public function assignedLanguages(UserInterface $user = null) {
+  public function assignedLanguages(UserInterface $user = NULL) {
     if ($user === NULL) {
       $user = $this->currentUserEntity();
     }
@@ -58,22 +81,14 @@ class AllowedLanguagesManager {
   }
 
   /**
-   * Checks if the user is allowed to translate the specified language.
-   *
-   * @param \Drupal\Core\Language\LanguageInterface $language
-   *   The language to check for.
-   * @param \Drupal\user\UserInterface $user
-   *   The user to check.
-   *
-   * @return bool
-   *   If the user is allowed to or not.
+   * {@inheritdoc}
    */
-  public function hasPermissionForLanguage(LanguageInterface $language, UserInterface $user = null) {
+  public function hasPermissionForLanguage(LanguageInterface $language, UserInterface $user = NULL) {
     if ($user === NULL) {
       $user = $this->currentUserEntity();
     }
 
-    // Bypass the access check if the user has permission to translate all languages.
+    // Bypass the check if the user has permission to translate all languages.
     if ($user->hasPermission('translate all languages')) {
       return TRUE;
     }

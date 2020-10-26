@@ -2,7 +2,7 @@
 
 namespace Drupal\allowed_languages\Access;
 
-use Drupal\allowed_languages\AllowedLanguagesManager;
+use Drupal\allowed_languages\AllowedLanguagesManagerInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -29,7 +29,7 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
    *   Drupal language manager.
    */
   public function __construct(
-    AllowedLanguagesManager $allowed_languages_manager,
+    AllowedLanguagesManagerInterface $allowed_languages_manager,
     LanguageManagerInterface $languageManager
   ) {
     parent::__construct($allowed_languages_manager);
@@ -63,7 +63,9 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
    *   The access result.
    */
   public function access(Route $route, RouteMatchInterface $route_match, AccountInterface $account, $source = NULL, $target = NULL, $language = NULL, $entity_type_id = NULL) {
-    /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
+    /**
+     * @var \Drupal\Core\Entity\ContentEntityInterface $entity
+     */
     $entity = $route_match->getParameter($entity_type_id);
 
     // If the entity could not be found on the parameters let other modules

@@ -4,7 +4,6 @@ namespace Drupal\allowed_languages\Controller;
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\content_translation\Controller\ContentTranslationController;
-use Drupal\user\Entity\User;
 
 /**
  * Base class for entity translation controllers.

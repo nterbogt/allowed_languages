@@ -2,7 +2,7 @@
 
 namespace Drupal\allowed_languages\Access;
 
-use Drupal\allowed_languages\AllowedLanguagesManager;
+use Drupal\allowed_languages\AllowedLanguagesManagerInterface;
 use Drupal\allowed_languages\UrlLanguageService;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -29,7 +29,7 @@ class EntityAccessCheck extends AccessCheckBase {
    *   Allowed access url language service.
    */
   public function __construct(
-    AllowedLanguagesManager $allowed_languages_manager,
+    AllowedLanguagesManagerInterface $allowed_languages_manager,
     UrlLanguageService $urlLanguageService
   ) {
     parent::__construct($allowed_languages_manager);
