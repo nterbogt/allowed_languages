@@ -25,6 +25,7 @@ interface AllowedLanguagesManagerInterface {
    * Get the actual account entity behind the proxy.
    *
    * @param \Drupal\Core\Session\AccountProxyInterface $account
+   *   The account proxy object to use to get the account entity.
    *
    * @return \Drupal\user\UserInterface
    *   The account entity behind the proxy.

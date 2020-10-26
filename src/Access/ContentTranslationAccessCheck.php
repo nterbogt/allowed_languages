@@ -25,16 +25,18 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
   /**
    * AccessCheck constructor.
    *
-   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
+   * @param \Drupal\allowed_languages\AllowedLanguagesManagerInterface $allowed_languages_manager
+   *   The allowed language manager service.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   Drupal language manager.
    */
   public function __construct(
     AllowedLanguagesManagerInterface $allowed_languages_manager,
-    LanguageManagerInterface $languageManager
+    LanguageManagerInterface $language_manager
   ) {
     parent::__construct($allowed_languages_manager);
 
-    $this->languageManager = $languageManager;
+    $this->languageManager = $language_manager;
   }
 
   /**

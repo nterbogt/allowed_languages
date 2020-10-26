@@ -25,16 +25,18 @@ class EntityAccessCheck extends AccessCheckBase {
   /**
    * AccessCheck constructor.
    *
-   * @param \Drupal\allowed_languages\UrlLanguageService $urlLanguageService
+   * @param \Drupal\allowed_languages\AllowedLanguagesManagerInterface $allowed_languages_manager
+   *   The allowed language manager service.
+   * @param \Drupal\allowed_languages\UrlLanguageService $url_language_service
    *   Allowed access url language service.
    */
   public function __construct(
     AllowedLanguagesManagerInterface $allowed_languages_manager,
-    UrlLanguageService $urlLanguageService
+    UrlLanguageService $url_language_service
   ) {
     parent::__construct($allowed_languages_manager);
 
-    $this->urlLanguageService = $urlLanguageService;
+    $this->urlLanguageService = $url_language_service;
   }
 
   /**
