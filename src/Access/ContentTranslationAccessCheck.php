@@ -79,10 +79,10 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
     $language = $this->getTargetLanguage($target);
     $user = $this->allowedLanguagesManager->userEntityFromProxy($account);
     if ($this->allowedLanguagesManager->hasPermissionForLanguage($language, $user)) {
-      return AccessResult::allowed()->addCacheableDependency($user);
+      return AccessResult::allowed()->cachePerUser()->addCacheableDependency($user);
     }
 
-    return AccessResult::forbidden()->addCacheableDependency($user);
+    return AccessResult::forbidden()->cachePerUser()->addCacheableDependency($user);
   }
 
   /**
