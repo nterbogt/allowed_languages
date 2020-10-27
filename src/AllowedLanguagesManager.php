@@ -2,6 +2,7 @@
 
 namespace Drupal\allowed_languages;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -101,7 +102,7 @@ class AllowedLanguagesManager implements AllowedLanguagesManagerInterface {
   /**
    * {@inheritdoc}
    */
-  public function isEntityLanguageControlled($entity) {
+  public function isEntityLanguageControlled(EntityInterface $entity) {
     if ($entity instanceof ContentEntityInterface && $entity->isTranslatable()) {
       return TRUE;
     }

@@ -169,7 +169,7 @@ function allowed_languages_entity_access(EntityInterface $entity, $operation, Ac
   $language = $entity->language();
   $user = \Drupal::service('allowed_languages.allowed_languages_manager')->userEntityFromProxy($account);
   if (\Drupal::service('allowed_languages.allowed_languages_manager')->hasPermissionForLanguage($language, $user)) {
-    return AccessResult::neutral()->addCacheableDependency($user);
+    return AccessResult::allowed()->addCacheableDependency($user);
   }
 
   // Access check failed so do not allow the user to translate the specified
