@@ -5,6 +5,8 @@
  * Contains allowed_languages.module.
  */
 
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\ContentEntityFormInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -153,35 +155,27 @@ function allowed_languages_user_form_submit(array &$form, FormStateInterface $fo
 }
 
 /**
- * Implements hook_entity_operation_alter().
- *
- * Used on views that show entity operations like "/admin/content".
+ * Implements hook_entity_access().
  */
-function allowed_languages_entity_operation_alter(array &$operations, EntityInterface $entity) {
-
-  // Keep all operations if it is not the instance of ContentEntityInterface
-  // or the entity is not translatable.
+function allowed_languages_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
   if (!$entity instanceof ContentEntityInterface || !$entity->isTranslatable()) {
-    return;
+    return AccessResult::neutral();
   }
 
-  // If the language is allowed for the current user, leave alone.
+  // Only perform the access check when performing update/delete operations.
+  if (!in_array($operation, ['update', 'delete'])) {
+    return AccessResult::neutral();
+  }
+
   $language = $entity->language();
-  if (\Drupal::service('allowed_languages.allowed_languages_manager')->hasPermissionForLanguage($language)) {
-    return;
+  $user = \Drupal::service('allowed_languages.allowed_languages_manager')->userEntityFromProxy($account);
+  if (\Drupal::service('allowed_languages.allowed_languages_manager')->hasPermissionForLanguage($language, $user)) {
+    return AccessResult::neutral()->cachePerUser();
   }
 
-  // The access call doesn't know about language. Store it and then reset.
-  \Drupal::service('allowed_languages.url_language_service')->setUrlLanguage($language);
-
-  // Unset operations the user doesn't have access to.
-  foreach ($operations as $id => $operation) {
-    if (isset($operation['url']) && !$operation['url']->access()) {
-      unset($operations[$id]);
-    }
-  }
-
-  \Drupal::service('allowed_languages.url_language_service')->resetUrlLanguage();
+  // Access check failed so do not allow the user to translate the specified
+  // language.
+  return AccessResult::forbidden()->cachePerUser();
 }
 
 /**
