@@ -3,7 +3,6 @@ type: module
 description: Lets you limit the languages a user may use when managing content.
 core_version_requirement: ^8.8 || ^9
 package: Custom
-
 dependencies:
   - drupal:content_translation
   - drupal:user
