@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
 
 /**
  * The allowed language manager controls access to content by language.
@@ -95,6 +96,17 @@ class AllowedLanguagesManager implements AllowedLanguagesManagerInterface {
 
     $allowed_languages = $this->assignedLanguages($user);
     return in_array($language->getId(), $allowed_languages);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isEntityLanguageControlled($entity) {
+    if ($entity instanceof ContentEntityInterface && $entity->isTranslatable()) {
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
 }

@@ -2,6 +2,7 @@
 
 namespace Drupal\allowed_languages;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\user\UserInterface;
@@ -55,5 +56,16 @@ interface AllowedLanguagesManagerInterface {
    *   If the user is allowed to or not.
    */
   public function hasPermissionForLanguage(LanguageInterface $language, UserInterface $user = NULL);
+
+  /**
+   * Decide whether the entity should be language controlled or not.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to test.
+   *
+   * @return bool
+   *   TRUE if the entity should have permissions applied, FALSE otherwise.
+   */
+  public function isEntityLanguageControlled(EntityInterface $entity);
 
 }

@@ -15,7 +15,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\allowed_languages\Form\AllowedLanguagesTrustedCallbacks;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Entity\ContentEntityInterface;
 
 /**
  * Implements hook_help().
@@ -158,7 +157,7 @@ function allowed_languages_user_form_submit(array &$form, FormStateInterface $fo
  * Implements hook_entity_access().
  */
 function allowed_languages_entity_access(EntityInterface $entity, $operation, AccountInterface $account) {
-  if (!$entity instanceof ContentEntityInterface || !$entity->isTranslatable()) {
+  if (!\Drupal::service('allowed_languages.allowed_languages_manager')->isEntityLanguageControlled($entity)) {
     return AccessResult::neutral();
   }
 
@@ -170,12 +169,12 @@ function allowed_languages_entity_access(EntityInterface $entity, $operation, Ac
   $language = $entity->language();
   $user = \Drupal::service('allowed_languages.allowed_languages_manager')->userEntityFromProxy($account);
   if (\Drupal::service('allowed_languages.allowed_languages_manager')->hasPermissionForLanguage($language, $user)) {
-    return AccessResult::neutral()->cachePerUser();
+    return AccessResult::neutral()->addCacheableDependency($user);
   }
 
   // Access check failed so do not allow the user to translate the specified
   // language.
-  return AccessResult::forbidden()->cachePerUser();
+  return AccessResult::forbidden()->addCacheableDependency($user);
 }
 
 /**
