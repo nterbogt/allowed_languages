@@ -4,7 +4,6 @@ namespace Drupal\allowed_languages\Controller;
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\content_translation\Controller\ContentTranslationController;
-use Drupal\user\Entity\User;
 
 /**
  * Base class for entity translation controllers.
@@ -26,28 +25,29 @@ class AllowedLanguagesController extends ContentTranslationController {
     $build = parent::overview($route_match, $entity_type_id);
     $user = $this->currentUser();
 
-    if (!$user->hasPermission('translate all languages') &&
-      !empty($build['content_translation_overview']['#rows'])) {
-      $rows = &$build['content_translation_overview']['#rows'];
-      $languages = $this->languageManager()->getLanguages();
-      $user_entity = User::load($user->id());
-      $allowed_languages = allowed_languages_get_allowed_languages_for_user($user_entity);
-      // Index of a row with the language in the parent output.
-      $i = 0;
-      // Parent overview() method does the same loop through available languages.
-      foreach ($languages as $language) {
-        // If the user is not allowed to manage entities in this language.
-        if (!in_array($language->getId(), $allowed_languages)) {
-          $target_row = $rows[$i];
-          // Row with operations will always be the last. See parent method.
-          end($target_row);
-          $operations_key = key($target_row);
-          // Unset operations element in case if user can't edit entities in this language.
-          unset($rows[$i][$operations_key]['data']);
-        }
-        // Increment the language index.
-        $i++;
+    if ($user->hasPermission('translate all languages') ||
+      empty($build['content_translation_overview']['#rows'])) {
+      return $build;
+    }
+
+    $rows = &$build['content_translation_overview']['#rows'];
+    $languages = $this->languageManager()->getLanguages();
+    $allowed_languages = \Drupal::service('allowed_languages.allowed_languages_manager')->assignedLanguages();
+    // Index of a row with the language in the parent output.
+    $i = 0;
+    // Parent overview() method does the same loop through available languages.
+    foreach ($languages as $language) {
+      // If the user is not allowed to manage entities in this language.
+      if (!in_array($language->getId(), $allowed_languages)) {
+        $target_row = $rows[$i];
+        // Row with operations will always be the last. See parent method.
+        end($target_row);
+        $operations_key = key($target_row);
+        // Unset operations element in case if user can't edit entities in this language.
+        unset($rows[$i][$operations_key]['data']);
       }
+      // Increment the row index.
+      $i++;
     }
 
     return $build;

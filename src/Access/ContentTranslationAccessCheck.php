@@ -2,8 +2,8 @@
 
 namespace Drupal\allowed_languages\Access;
 
+use Drupal\allowed_languages\AllowedLanguagesManagerInterface;
 use Drupal\Core\Access\AccessResult;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -16,13 +16,6 @@ use Symfony\Component\Routing\Route;
 class ContentTranslationAccessCheck extends AccessCheckBase {
 
   /**
-   * Drupal entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  private $entityTypeManager;
-
-  /**
    * Drupal language manager.
    *
    * @var \Drupal\Core\Language\LanguageManagerInterface
@@ -32,19 +25,18 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
   /**
    * AccessCheck constructor.
    *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   Drupal entity type manager.
-   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
+   * @param \Drupal\allowed_languages\AllowedLanguagesManagerInterface $allowed_languages_manager
+   *   The allowed language manager service.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   Drupal language manager.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
-    LanguageManagerInterface $languageManager
+    AllowedLanguagesManagerInterface $allowed_languages_manager,
+    LanguageManagerInterface $language_manager
   ) {
-    parent::__construct($entityTypeManager);
+    parent::__construct($allowed_languages_manager);
 
-    $this->entityTypeManager = $entityTypeManager;
-    $this->languageManager = $languageManager;
+    $this->languageManager = $language_manager;
   }
 
   /**
@@ -73,7 +65,9 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
    *   The access result.
    */
   public function access(Route $route, RouteMatchInterface $route_match, AccountInterface $account, $source = NULL, $target = NULL, $language = NULL, $entity_type_id = NULL) {
-    /* @var \Drupal\Core\Entity\ContentEntityInterface $entity */
+    /**
+     * @var \Drupal\Core\Entity\ContentEntityInterface $entity
+     */
     $entity = $route_match->getParameter($entity_type_id);
 
     // If the entity could not be found on the parameters let other modules
@@ -82,14 +76,13 @@ class ContentTranslationAccessCheck extends AccessCheckBase {
       return AccessResult::neutral();
     }
 
-    $user = $this->loadUserEntityFromAccountProxy($account);
-    $target_language = $this->getTargetLanguage($target);
-
-    if ($this->userIsAllowedToTranslateLanguage($user, $target_language)) {
-      return AccessResult::allowed();
+    $language = $this->getTargetLanguage($target);
+    $user = $this->allowedLanguagesManager->userEntityFromProxy($account);
+    if ($this->allowedLanguagesManager->hasPermissionForLanguage($language, $user)) {
+      return AccessResult::allowed()->cachePerUser()->addCacheableDependency($user);
     }
 
-    return AccessResult::forbidden();
+    return AccessResult::forbidden()->cachePerUser()->addCacheableDependency($user);
   }
 
   /**
